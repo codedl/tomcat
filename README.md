@@ -1,4 +1,10 @@
 ## Welcome to Apache Tomcat!
+### 启动参数
+-Dcatalina.home=D:\Java\tomcat
+-Dcatalina.base=D:\Java\tomcat
+-Djava.io.tmpdir=D:\Java\tomcat\temp
+-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+-Djava.util.logging.config.file=D:\Java\tomcat\conf\logging.properties
 
 ### What Is It?
 

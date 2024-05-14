@@ -125,7 +125,7 @@ public final class Bootstrap {
 
 
     /**
-     * Daemon reference.
+     *  Catalina对象
      */
     private Object catalinaDaemon = null;
 

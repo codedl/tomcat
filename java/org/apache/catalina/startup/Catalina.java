@@ -379,11 +379,15 @@ public class Catalina {
         List<String> connectorAttrs = new ArrayList<>();
         connectorAttrs.add("portOffset");
         fakeAttributes.put(Connector.class, connectorAttrs);
+        // 定义忽略的属性
         digester.setFakeAttributes(fakeAttributes);
         digester.setUseContextClassLoader(true);
 
-        // Configure the actions we will be using
+        // 解析 server.xml 文件，首先生成 StandardServer 对象，调用 当前对象的 setServer 方法设置进行
+        // 再解析 Server/GlobalNamingResources 标签，生成 NamingResourcesImpl 对象，调用 StandardServer 的 setGlobalNamingResources 设置到 Server
+        // 如果 Server 标签中有 className 属性，则使用 className 属性创建对象，否则默认使用 org.apache.catalina.core.StandardServer
         digester.addObjectCreate("Server", "org.apache.catalina.core.StandardServer", "className");
+        // 读取 Server 标签下的属性到 Server 对象中
         digester.addSetProperties("Server");
         digester.addSetNext("Server", "setServer", "org.apache.catalina.Server");
 
