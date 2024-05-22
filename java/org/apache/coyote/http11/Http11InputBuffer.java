@@ -319,6 +319,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
 
     /**
+     * 解析请求行，格式：GET / HTTP/1.1
      * Read the request line. This function is meant to be used during the HTTP request header parsing. Do NOT attempt
      * to read the request body using it.
      *
@@ -335,7 +336,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         }
         //
         // Skipping blank lines
-        //
+        // 跳过空行
         if (parsingRequestLinePhase < 2) {
             do {
                 // Read new bytes if needed
@@ -379,6 +380,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             parsingRequestLineStart = byteBuffer.position();
             parsingRequestLinePhase = 2;
         }
+        //解析请求方式
         if (parsingRequestLinePhase == 2) {
             //
             // Reading the method name
@@ -396,6 +398,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                 // also be tolerant of multiple SP and/or HT.
                 int pos = byteBuffer.position();
                 chr = byteBuffer.get();
+                //http请求的开头字符为请求方式，以 空格(' ')或制表('\t')结尾
                 if (chr == Constants.SP || chr == Constants.HT) {
                     space = true;
                     request.method().setBytes(byteBuffer.array(), parsingRequestLineStart,
@@ -409,6 +412,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             }
             parsingRequestLinePhase = 3;
         }
+        // 去除空字符
         if (parsingRequestLinePhase == 3) {
             // Spec says single SP but also be tolerant of multiple SP and/or HT
             boolean space = true;
@@ -428,6 +432,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             parsingRequestLineStart = byteBuffer.position();
             parsingRequestLinePhase = 4;
         }
+        //解析url
         if (parsingRequestLinePhase == 4) {
             // Mark the current buffer position
 
@@ -496,6 +501,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                 request.requestURI().setBytes(byteBuffer.array(), parsingRequestLineStart,
                         parsingRequestLineQPos - parsingRequestLineStart);
             } else {
+                //把解析到的url记下来
                 request.requestURI().setBytes(byteBuffer.array(), parsingRequestLineStart,
                         end - parsingRequestLineStart);
             }
@@ -527,6 +533,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             // Mark the current buffer position
             end = 0;
         }
+        //协议版本
         if (parsingRequestLinePhase == 6) {
             //
             // Reading the protocol
