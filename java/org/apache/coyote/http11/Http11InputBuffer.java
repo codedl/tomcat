@@ -830,7 +830,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
 
     /**
-     * Parse an HTTP header.
+     * Parse an HTTP header.格式为 head:value
      *
      * @return One of {@link HeaderParseStatus#NEED_MORE_DATA}, {@link HeaderParseStatus#HAVE_MORE_HEADERS} or
      *             {@link HeaderParseStatus#DONE}.
@@ -883,7 +883,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         // Reading the header name
         // Header name is always US-ASCII
         //
-
+        // 请求头名称
         while (headerParsePos == HeaderParsePosition.HEADER_NAME) {
 
             // Read new bytes if needed
@@ -895,6 +895,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
             int pos = byteBuffer.position();
             chr = byteBuffer.get();
+            //读取到 :
             if (chr == Constants.COLON) {
                 if (headerData.start == pos) {
                     // Zero length header name - not valid.
@@ -902,6 +903,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                     return skipLine(false);
                 }
                 headerParsePos = HeaderParsePosition.HEADER_VALUE_START;
+                //添加请求头，返回指向请求头的引用
                 headerData.headerValue = headers.addValue(byteBuffer.array(), headerData.start, pos - headerData.start);
                 pos = byteBuffer.position();
                 // Mark the current buffer position
@@ -1027,7 +1029,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                 }
             }
         }
-        // Set the header value
+        // 设置请求头值
         headerData.headerValue.setBytes(byteBuffer.array(), headerData.start,
                 headerData.lastSignificantChar - headerData.start);
         headerData.recycle();

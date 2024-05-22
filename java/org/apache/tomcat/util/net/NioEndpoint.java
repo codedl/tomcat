@@ -495,6 +495,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
 
             // Set socket properties
             // Disable blocking, polling will be used
+            //设置socket为非阻塞模式，读写数据时就会立刻返回不会阻塞
             socket.configureBlocking(false);
             if (getUnixDomainSocketPath() == null) {
                 socketProperties.setProperties(socket.socket());
@@ -654,6 +655,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
 
         private void addEvent(PollerEvent event) {
             events.offer(event);
+            //为0说明当前select还在轮询阻塞中，需要立刻唤醒
             if (wakeupCounter.incrementAndGet() == 0) {
                 selector.wakeup();
             }
