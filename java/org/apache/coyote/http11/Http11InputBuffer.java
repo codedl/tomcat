@@ -346,6 +346,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                         // timeout.
                         wrapper.setReadTimeout(keepAliveTimeout);
                     }
+                    //读取nio的字节缓冲区的字节流，即客户端发送的请求数据
                     if (!fill(false)) {
                         // A read is pending, so no longer in initial state
                         parsingRequestLinePhase = 1;
