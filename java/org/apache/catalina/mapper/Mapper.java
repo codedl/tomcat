@@ -755,9 +755,12 @@ public final class Mapper {
             context = contexts[pos];
             if (uri.startsWith(context.name)) {
                 length = context.name.length();
+                //uri长度和context的name长度相等，说明找到了对应的context
                 if (uri.getLength() == length) {
                     found = true;
                     break;
+                    //uri中从context的name的长度开始的字符串是否为/，是则找到
+                    //例如 /MyXmlApp/myservlet 中找到一个 name为 /MyXmlApp 的context，并且name的下个字符串是 /
                 } else if (uri.startsWithIgnoreCase("/", length)) {
                     found = true;
                     break;
@@ -828,10 +831,13 @@ public final class Mapper {
         boolean noServletPath = false;
 
         int length = contextVersion.path.length();
+        //如果只有context路径，则无对应的servlet
         if (length == (pathEnd - pathOffset)) {
             noServletPath = true;
         }
+        //servlet路径在context路径后面
         int servletPath = pathOffset + length;
+        //截取context路径后面的字符串
         path.setOffset(servletPath);
 
         // Rule 1 -- Exact Match
@@ -1011,6 +1017,7 @@ public final class Mapper {
                 mappingData.contextPath.setString("");
                 mappingData.matchType = MappingMatch.CONTEXT_ROOT;
             } else {
+                //设置servlet路径和匹配类型为精准匹配
                 mappingData.wrapperPath.setString(wrapper.name);
                 mappingData.matchType = MappingMatch.EXACT;
             }

@@ -338,6 +338,7 @@ public class CoyoteAdapter implements Adapter {
         try {
             // Parse and set Catalina and configuration specific
             // request parameters
+            //根据请求url映射容器
             postParseSuccess = postParseRequest(req, request, res, response);
             if (postParseSuccess) {
                 // check valves if we support async
@@ -693,6 +694,7 @@ public class CoyoteAdapter implements Adapter {
 
         while (mapRequired) {
             // This will map the the latest version by default
+            //通过请求url映射context和servlet
             connector.getService().getMapper().map(serverName, decodedURI, version, request.getMappingData());
 
             // If there is no context at this point, either this is a 404
