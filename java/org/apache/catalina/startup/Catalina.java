@@ -379,7 +379,7 @@ public class Catalina {
         List<String> connectorAttrs = new ArrayList<>();
         connectorAttrs.add("portOffset");
         fakeAttributes.put(Connector.class, connectorAttrs);
-        // 定义忽略的属性
+        // 定义忽略的属性，忽略Connector类的portOffset属性，解析xml时不会映射到Connectore的portOffset属性
         digester.setFakeAttributes(fakeAttributes);
         digester.setUseContextClassLoader(true);
 
@@ -389,6 +389,7 @@ public class Catalina {
         digester.addObjectCreate("Server", "org.apache.catalina.core.StandardServer", "className");
         // 读取 Server 标签下的属性到 Server 对象中
         digester.addSetProperties("Server");
+        // 调用上级对象的 setServer 方法，参数类型为 org.apache.catalina.Server
         digester.addSetNext("Server", "setServer", "org.apache.catalina.Server");
 
         digester.addObjectCreate("Server/GlobalNamingResources", "org.apache.catalina.deploy.NamingResourcesImpl");
@@ -457,7 +458,8 @@ public class Catalina {
         digester.addSetNext("Server/Service/Connector/UpgradeProtocol", "addUpgradeProtocol",
                 "org.apache.coyote.UpgradeProtocol");
 
-        // Add RuleSets for nested elements
+        // Add RuleSets for nested elements，定义各子节点的解析规则
+        // 解析到 Server/GlobalNamingResources/ 节点时，会按 NamingRuleSet 定义的规则继续解析
         digester.addRuleSet(new NamingRuleSet("Server/GlobalNamingResources/"));
         digester.addRuleSet(new EngineRuleSet("Server/Service/"));
         digester.addRuleSet(new HostRuleSet("Server/Service/Engine/"));
@@ -515,7 +517,7 @@ public class Catalina {
 
 
     protected void parseServerXml(boolean start) {
-        // Set configuration source
+        // Set configuration source server.xml配置文件路径
         ConfigFileLoader
                 .setSource(new CatalinaBaseConfigurationSource(Bootstrap.getCatalinaBaseFile(), getConfigFile()));
         File file = configFile();

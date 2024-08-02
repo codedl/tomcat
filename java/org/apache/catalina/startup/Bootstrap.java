@@ -60,6 +60,7 @@ public final class Bootstrap {
 
     private static final Pattern PATH_PATTERN = Pattern.compile("(\"[^\"]*\")|(([^,])*)");
 
+    //设置tomcat服务器的工作路径
     static {
         // Will always be non-null
         String userDir = System.getProperty("user.dir");

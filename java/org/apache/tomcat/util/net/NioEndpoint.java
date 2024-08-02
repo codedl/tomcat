@@ -654,8 +654,9 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
         }
 
         private void addEvent(PollerEvent event) {
+            // 添加到SynchronizedQueue等待Poller的run消费
             events.offer(event);
-            //为0说明当前select还在轮询阻塞中，需要立刻唤醒
+            //wakeupCounter为0说明当前select还在轮询阻塞中，需要立刻唤醒
             if (wakeupCounter.incrementAndGet() == 0) {
                 selector.wakeup();
             }
@@ -705,6 +706,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
             for (int i = 0, size = events.size(); i < size && (pe = events.poll()) != null; i++ ) {
                 result = true;
                 NioSocketWrapper socketWrapper = pe.getSocketWrapper();
+                // 获取 accept() 返回的socket对象
                 SocketChannel sc = socketWrapper.getSocket().getIOChannel();
                 int interestOps = pe.getInterestOps();
                 if (sc == null) {
@@ -712,6 +714,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
                     socketWrapper.close();
                 } else if (interestOps == OP_REGISTER) {
                     try {
+                        // 注册socket的读事件到selector监听器
                         sc.register(getSelector(), SelectionKey.OP_READ, socketWrapper);
                     } catch (Exception x) {
                         log.error(sm.getString("endpoint.nio.registerFail"), x);
@@ -756,6 +759,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
          * @param socketWrapper The socket wrapper
          */
         public void register(final NioSocketWrapper socketWrapper) {
+            //收到客户端socket的连接请求，会将socket的read读事件注册到selector监听器上，等待读事件读取客户端socket数据
             socketWrapper.interestOps(SelectionKey.OP_READ);//this is what OP_REGISTER turns into.
             PollerEvent pollerEvent = createPollerEvent(socketWrapper, OP_REGISTER);
             addEvent(pollerEvent);
@@ -803,11 +807,13 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
                 try {
                     if (!close) {
                         hasEvents = events();
+                        // 有连接时立即返回注册到selector上的数量；没连接时阻塞1s等待客户端的连接
                         if (wakeupCounter.getAndSet(-1) > 0) {
                             // If we are here, means we have other stuff to do
                             // Do a non blocking select
                             keyCount = selector.selectNow();
                         } else {
+                            // 返回有事件的socket数量,accept线程中唤醒select时返回0，因为还没有socket注册到selector
                             keyCount = selector.select(selectorTimeout);
                         }
                         wakeupCounter.set(0);
@@ -838,6 +844,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel,SocketChannel> 
                 // any active event.
                 while (iterator != null && iterator.hasNext()) {
                     SelectionKey sk = iterator.next();
+                    // 不用重复处理 SelectionKey，remove()不会解除socket在selector上的注册
                     iterator.remove();
                     NioSocketWrapper socketWrapper = (NioSocketWrapper) sk.attachment();
                     // Attachment may be null if another thread has called
